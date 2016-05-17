@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html ng-app="crawl">
+<head>
+<meta charset="utf8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+ <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+ <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+ <script src="/js/ui-bootstrap-tpls-1.3.2.min.js"></script>
+ <script type="text/javascript">
+   
+   var app=angular.module('crawl', ["ui.bootstrap"]);
+   app.controller("crawlCtrl",function($scope,$http){
+          $scope.filteredTodos = []
+          $scope.currentPage = 0;
+          $scope.numPerPage = 10;
+          $scope.maxSize = 10;
+
+          $scope.images=[];
+
+          $http.get("/topFilms").success(function(response){
+            $scope.images=response;
+            $scope.currentPage++;
+          }).error(function(error){
+
+          });
+
+        
+        $scope.$watch('currentPage + numPerPage', function() {
+         var begin = (($scope.currentPage - 1) * $scope.numPerPage)
+         var end = begin + $scope.numPerPage;
+         $scope.filteredTodos = $scope.images.slice(begin, end);
+      });
+
+   });
+
+ </script>
+	<title>WEB-Crawling</title>
+</head>
+<body ng-controller="crawlCtrl">
+<div class="table-responsive">
+<div class="form-group">
+   <label for="search">Arama</label>
+   <input type="text" name="search"  class="form-control" ng-model="search">
+</div>
+ <table class="table table-striped  table-hover table-condensed">
+ 	<tr ng-repeat="image in filteredTodos |filter:search">
+        <td>
+        	<img ng-src="{{image.src}}" width="45" height="67">
+        </td>
+        <td>
+           <a href="{{image.url}}">{{image.txt}} </a>
+           <span>{{image.year}}</span>
+        </td>
+       
+ 	</tr>
+
+ </table>
+ <uib-pagination total-items="images.length" ng-model="currentPage" boundary-links="true" max-size="maxSize"></uib-pagination>
+  
+ </div>
+</body>
+</html>

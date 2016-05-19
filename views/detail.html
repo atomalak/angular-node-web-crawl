@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html ng-app="detail">
+<head>
+<meta charset="utf8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+ <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+ <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+ <script src="/js/store.js"></script>
+ <script src="/js/service/service.js"></script>
+ <script src="/js/jquery-1.11.3.min.js"></script>
+ <script src="/js/qrcode-0.12.0.js"></script>
+ <script src="/js/ui-bootstrap-tpls-1.3.2.min.js"></script>
+ <script src="/js/service/service.js"></script>
+ <script type="text/javascript">
+   var app=angular.module("detail",["yservice"]);
+   app.constant('path',"http://www.youtube.com/embed/");    
+   app.constant("mobilepath","https://www.youtube.com/watch?v=");
+   app.controller("detailCtrl",function($scope,youtubeservice,$sce,path,$timeout,mobilepath){
+     $scope.movies=[];
+     var key=window.location.search.split("=")[1];
+     var movieName=getToSessionStore(key);
+     youtubeservice.search(movieName).then(function(response){
+         $scope.movies=response.data.items;
+         for(var i=0; i<$scope.movies.length; i++){
+         	$scope.movies[i].iframeUrl=$sce.trustAsResourceUrl(path+$scope.movies[i].id.videoId);
+         }
+
+         //after 500 ms later generate qrcode for mobile 
+         $timeout(function(){
+           for(var i=0; i<$scope.movies.length; i++){
+           	$(".qrcode-"+i).qrcode({
+			    "size": 100,
+			    "color": "#3a3",
+			    "text": mobilepath+$scope.movies[i].id.videoId
+			});
+           }
+         },1000);
+
+
+     });
+   });
+ </script>
+  <title>Detay Sayfası</title>
+</head>
+<body ng-controller="detailCtrl">
+  <table class="table table-striped  table-hover table-condensed">
+    <tr ng-repeat="movie in movies">
+       <td><img src="{{movie.snippet.thumbnails.high.url}}" width="100" height="100"/></td>
+       <td><h4>{{movie.snippet.title}}</h4></td>
+       <td><iframe ng-src="{{movie.iframeUrl}}" width="100" height="100"></iframe></td>
+       <td class="qrcode-{{$index}}"></td>
+    </tr>
+  	
+  </table>
+ 
+</body>
+</html>

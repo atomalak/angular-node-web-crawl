@@ -6,19 +6,20 @@
  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
  <script src="/js/ui-bootstrap-tpls-1.3.2.min.js"></script>
+ <script src="/js/service/service.js"></script>
+ <script src="/js/store.js"></script>
  <script type="text/javascript">
    
-   var app=angular.module('crawl', ["ui.bootstrap"]);
-   app.controller("crawlCtrl",function($scope,$http){
+   var app=angular.module('crawl', ["ui.bootstrap","yservice"]);
+   app.controller("crawlCtrl",function($scope,$http,youtubeservice,$filter,dataservice){
           $scope.filteredTodos = []
           $scope.currentPage = 0;
           $scope.numPerPage = 10;
           $scope.maxSize = 10;
-
           $scope.images=[];
-
           $http.get("/topFilms").success(function(response){
             $scope.images=response;
+            dataservice.setResponseDatas($scope.images);
             $scope.currentPage++;
           }).error(function(error){
 
@@ -31,6 +32,22 @@
          $scope.filteredTodos = $scope.images.slice(begin, end);
       });
 
+      
+
+        $scope.searchyoutube=function(movieName){
+        	var key=generateKey();
+        	saveToSessionStore(key,movieName);
+        	window.location.href="/views/detail.html?search="+key;
+        }
+
+        $scope.searches=function(){
+        	if($scope.search!=''){
+        	  $scope.images=$filter("filter")(dataservice.getResponseDatas(),$scope.search);
+        	  $scope.filteredTodos=$scope.images;
+           	}else{
+        	  $scope.images=youtubeservice.getResponseDatas();
+        	}
+        }
    });
 
  </script>
@@ -40,15 +57,15 @@
 <div class="table-responsive">
 <div class="form-group">
    <label for="search">Arama</label>
-   <input type="text" name="search"  class="form-control" ng-model="search">
+   <input type="text" name="search"  class="form-control" ng-model="search" ng-keyup="searches()">
 </div>
  <table class="table table-striped  table-hover table-condensed">
- 	<tr ng-repeat="image in filteredTodos |filter:search">
+ 	<tr ng-repeat="image in filteredTodos |limitTo:maxSize ">
         <td>
         	<img ng-src="{{image.src}}" width="45" height="67">
         </td>
         <td>
-           <a href="{{image.url}}">{{image.txt}} </a>
+           <a href="javascript:void(0)" ng-click="searchyoutube(image.txt)">{{image.txt}} </a>
            <span>{{image.year}}</span>
         </td>
        
@@ -56,6 +73,7 @@
 
  </table>
  <uib-pagination total-items="images.length" ng-model="currentPage" boundary-links="true" max-size="maxSize"></uib-pagination>
+ 
   
  </div>
 </body>

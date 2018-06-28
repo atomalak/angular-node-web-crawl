@@ -5,7 +5,7 @@ angular.module("yservice",[])
 			   params:{
 				   part:'snippet',
 				   q:search,
-				   key:'AIzaSyCR5In4DZaTP6IEZQ0r1JceuvluJRzQNLE'
+				   key:''
 			   }
            });
     }; 
